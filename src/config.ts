@@ -78,7 +78,8 @@ export const clubCta = {
     '从一个想法开始，一起做点有趣的事。',
   ],
   primary: { label: '看看我们还做过什么', url: 'https://viberspace.io' },
-  secondary: { label: '我也想一起做点东西', url: 'https://viberspace.io' },
+  /** 点击复制微信号（微信不支持网页直接加好友） */
+  secondary: { label: '我也想一起做点东西', wechat: 'DCat_0929' },
 }
 
 /**
