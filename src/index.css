@@ -1,0 +1,126 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-ink: #07080a;
+  --color-panel: #0e1113;
+  --color-panel-2: #141a17;
+  --color-line: #222b25;
+  --color-text: #e8ece6;
+  --color-mute: #8b958d;
+  --color-neon: #b8ff2c;
+  --color-neon-2: #7dff9a;
+  --color-warn: #ffb02e;
+
+  --font-sans: 'PingFang SC', 'HarmonyOS Sans SC', 'MiSans', 'Microsoft YaHei', 'Noto Sans SC', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+}
+
+html,
+body {
+  background: var(--color-ink);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  min-height: 100dvh;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 背景网格 */
+.grid-bg {
+  background-image:
+    linear-gradient(to right, rgb(184 255 44 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(184 255 44 / 0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse at 50% 0%, black 30%, transparent 75%);
+}
+
+.neon-text {
+  color: var(--color-neon);
+  text-shadow: 0 0 24px rgb(184 255 44 / 0.35);
+}
+
+.caret::after {
+  content: '▋';
+  margin-left: 2px;
+  color: var(--color-neon);
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes scan {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@keyframes stamp {
+  0% {
+    opacity: 0;
+    transform: rotate(-14deg) scale(1.8);
+  }
+  60% {
+    opacity: 1;
+    transform: rotate(-14deg) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-14deg) scale(1);
+  }
+}
+
+.stamp-in {
+  animation: stamp 0.5s 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.press {
+  transition:
+    transform 0.12s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.press:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
