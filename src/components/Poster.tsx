@@ -3,6 +3,7 @@ import QRCode from 'qrcode'
 import { site } from '../config'
 import { appointmentNo, type Result } from '../lib/scoring'
 import { displayUrl, qrLink } from '../lib/share'
+import { LogoLockup } from './Logo'
 
 /** 生成二维码 SVG（本地生成，不依赖任何外部服务） */
 function useQrSvg(text: string) {
@@ -82,6 +83,9 @@ const Poster = forwardRef<HTMLDivElement, { result: Result }>(function Poster({ 
           <div className="flex flex-1 flex-col justify-center rounded-xl border border-line bg-panel/80 px-3 py-3">
             <p className="text-[11px] text-mute">董事会评语</p>
             <p className="mt-1 text-[13px] leading-snug font-medium">{persona.board}</p>
+            <p className="mt-2 border-t border-line pt-1.5 text-[11px] text-mute">
+              感情忠贞度 <span className="font-bold text-[#ff8fb1]">{result.loyalty}</span>
+            </p>
           </div>
         </div>
 
@@ -118,7 +122,9 @@ const Poster = forwardRef<HTMLDivElement, { result: Result }>(function Poster({ 
               <p className="mt-0.5 text-[11.5px] text-neon">扫码，立刻开始你的 CEO 面试 →</p>
               <p className="mt-2 font-mono text-[10.5px] font-bold text-text/90">{site.productName}</p>
               <p className="font-mono text-[9.5px] text-mute">{displayUrl()}</p>
-              <p className="font-mono text-[9.5px] text-mute">Created by {site.club}</p>
+              <p className="mt-0.5 flex items-center gap-1.5 font-mono text-[9.5px] text-mute">
+                Created by <LogoLockup height={15} />
+              </p>
             </div>
             {qr && (
               <div className="shrink-0 rounded-lg bg-white p-[5px]">

@@ -9,6 +9,8 @@ export interface Option {
   id: string // 选项唯一 id，会进入埋点，改文案时不要改 id
   text: string
   weights: Partial<Record<Dim, number>>
+  /** 只有感情题的选项有：结果页与海报上的「感情忠贞度」 */
+  loyalty?: string
 }
 
 export interface Question {
@@ -35,7 +37,7 @@ export const site = {
   productName: "Who's the Next CEO?",
   productNameZh: '英伟达 CEO 招聘模拟器',
   slogan: '老黄离职了，这个 CEO 你来当？',
-  club: 'USYD Vibe Coding Club',
+  club: 'ViberSpace',
   /** 线上地址：海报二维码、海报网址、挑战文案都用它。留空则自动使用当前页面地址 */
   siteUrl: 'https://catdisgust.github.io/next-ceo/',
   disclaimer: '非官方娱乐模拟器 · 与 NVIDIA 无任何关联 · 不是真实招聘',
@@ -49,8 +51,8 @@ export const newsHook = {
   kicker: 'BREAKING · 招聘公告',
   headline: ['老黄离职了。', '现在，轮到你当', '英伟达 CEO 了。'],
   sub: [
-    '全球最难的岗位之一，现向全体网友开放（假的）。',
-    '五道面试题，看看你能不能镇住整个 AI 圈。',
+    '董事会正在物色新 CEO（这是真的），现向全体网友开放（这是假的）。',
+    '六道面试题，看看你能不能镇住整个 AI 圈。',
   ],
   cta: '我要应聘 CEO',
   ctaHint: '0 年工作经验也可以试试。',
@@ -63,7 +65,7 @@ export const newsHook = {
 export const clubCta = {
   title: '这个离谱的面试系统，是一群大学生用 AI 做的。',
   body: [
-    '我们是 USYD Vibe Coding Club。',
+    '我们是 ViberSpace。',
     '我们喜欢把一些奇奇怪怪的想法，变成真的能玩的产品。',
     '不会写代码也没关系。',
     '从一个想法开始，一起做点有趣的事。',
@@ -124,61 +126,74 @@ export const dims: Record<Dim, { label: string; en: string; strength: string; we
 export const tieBreak: Dim[] = ['creativity', 'vision', 'tech', 'business', 'confidence']
 
 /* ------------------------------------------------------------------ */
-/* 面试题（每个选项总分保持 3，评分更公平）                             */
+/* 面试题（每个选项总分保持 3；感情题选项额外带「感情忠贞度」）          */
 /* ------------------------------------------------------------------ */
 
 export const questions: Question[] = [
   {
     id: 'q1',
-    title: '你为什么想成为英伟达 CEO？',
+    title: '董事会正在内外部同时物色新 CEO。你作为外部候选人走进面试间，开口第一句是？',
     options: [
-      { id: 'q1a', text: '我觉得我可以，至于为什么还没想好。', weights: { confidence: 3 } },
-      { id: 'q1b', text: '我想让全球显卡价格打骨折。', weights: { business: 3 } },
-      { id: 'q1c', text: '我有一个改变 AI 行业的伟大计划。', weights: { vision: 3 } },
-      { id: 'q1d', text: '我想看看公司食堂到底吃什么。', weights: { creativity: 2, confidence: 1 } },
+      { id: 'q1a', text: '「不用介绍了，我的皮衣已经在路上了。」', weights: { confidence: 3 } },
+      { id: 'q1b', text: '「先聊薪资。股价跌掉的那 4%，算谁的？」', weights: { business: 3 } },
+      { id: 'q1c', text: '「请问 CUDA 那道题，可以开卷吗？」', weights: { tech: 2, creativity: 1 } },
+      { id: 'q1d', text: '「我不是来应聘的，我是来带你们去下一个万亿市场的。」', weights: { vision: 3 } },
     ],
   },
   {
     id: 'q2',
-    title: '上任第一天，你会干什么？',
+    title: '上任第一天，下周就要发财报了。你先干什么？',
     options: [
-      { id: 'q2a', text: '给所有员工放三天假，毕竟我刚上班。', weights: { confidence: 2, business: 1 } },
-      { id: 'q2b', text: '研究一下 CUDA 到底是什么。', weights: { tech: 3 } },
-      { id: 'q2c', text: '召开紧急战略会议，宣布进军新的万亿市场。', weights: { vision: 3 } },
-      { id: 'q2d', text: '先给自己定制一件皮衣。', weights: { confidence: 3 } },
+      { id: 'q2a', text: '全员放假三天，财报让 AI 先写个初稿。', weights: { creativity: 2, confidence: 1 } },
+      { id: 'q2e', text: '宣布全线显卡打骨折：财报可以难看，口碑必须好看。', weights: { business: 3 } },
+      { id: 'q2b', text: '连夜补课：CUDA、Blackwell、Rubin 到底谁是谁。', weights: { tech: 3 } },
+      { id: 'q2f', text: '先定制一件新皮衣，发布会的气势不能输。', weights: { confidence: 2, vision: 1 } },
     ],
   },
   {
     id: 'q3',
-    title: '微软 CEO 打来电话，说需要更多 GPU，你怎么回复？',
+    title: '全球大厂的 CEO 排队给你打电话要 GPU，你的统一回复是？',
     options: [
-      { id: 'q3a', text: '「哥，再等等，真没货了。」', weights: { business: 2, tech: 1 } },
-      { id: 'q3b', text: '「加钱。」', weights: { business: 3 } },
-      { id: 'q3c', text: '「我们正在重新定义算力的未来。」', weights: { vision: 2, confidence: 1 } },
-      { id: 'q3d', text: '「你先借我点钱扩产。」', weights: { creativity: 2, business: 1 } },
+      { id: 'q3a', text: '「请取号排队，当前预计等待：18 个月。」', weights: { business: 2, tech: 1 } },
+      { id: 'q3b', text: '「买得越多，省得越多。」', weights: { business: 3 } },
+      { id: 'q3c', text: '「我们正在重新定义算力的未来，请稍后再拨。」', weights: { vision: 2, confidence: 1 } },
+      { id: 'q3d', text: '「卡没有。要不你先借我点钱扩产？」', weights: { creativity: 2, business: 1 } },
+    ],
+  },
+  {
+    id: 'q_love',
+    title: '你刚当上 CEO，白月光突然发来消息：「听说你现在很厉害？」你怎么回？',
+    options: [
+      { id: 'love_a', text: '已读不回。我现在只对 GPU 专一。', weights: { confidence: 3 }, loyalty: '忠贞不二 · 只爱 GPU' },
+      { id: 'love_b', text: '「等我把市值做回去，再来找你。」', weights: { vision: 3 }, loyalty: '画饼型深情' },
+      { id: 'love_c', text: '让 AI 帮我写一条既体面又暧昧的回复。', weights: { creativity: 3 }, loyalty: 'AI 代理恋爱' },
+      { id: 'love_d', text: '「先说清楚，你现在用的是什么显卡？」', weights: { tech: 3 }, loyalty: '硬件至上主义' },
     ],
   },
   {
     id: 'q4',
-    title: '竞争对手宣布推出比你便宜十倍的芯片，你怎么办？',
+    title: '竞争对手发布了一款比你便宜十倍的芯片，你怎么办？',
     options: [
-      { id: 'q4a', text: '连夜召集研发团队。', weights: { tech: 3 } },
-      { id: 'q4b', text: '发条动态：「真正的高手从不在乎价格。」', weights: { confidence: 3 } },
-      { id: 'q4c', text: '先买一个回来拆开看看。', weights: { tech: 2, creativity: 1 } },
-      { id: 'q4d', text: '宣布英伟达正式转型做奶茶。', weights: { creativity: 3 } },
+      { id: 'q4a', text: '连夜召集研发：下一代芯片，提前发布。', weights: { tech: 3 } },
+      { id: 'q4b', text: '发条动态：「真正的高手，从不在乎价格。」', weights: { confidence: 3 } },
+      { id: 'q4c', text: '先买一个回来拆开看看，看完挂闲鱼回血。', weights: { tech: 2, creativity: 1 } },
+      { id: 'q4d', text: '宣布英伟达转型做奶茶，第一杯叫「CUDA 拿铁」。', weights: { creativity: 3 } },
     ],
   },
   {
     id: 'q5',
-    title: '最后一道题：你觉得自己真的能胜任 CEO 吗？',
+    title: '最后一题。董事会问：你凭什么觉得自己能胜任？',
     options: [
-      { id: 'q5a', text: '不能，但是可以边做边学。', weights: { tech: 1, creativity: 2 } },
-      { id: 'q5b', text: '我不懂技术，但我会用 AI。', weights: { creativity: 3 } },
-      { id: 'q5c', text: '我觉得我的自信已经完全胜任。', weights: { confidence: 3 } },
-      { id: 'q5d', text: '先让我试用三个月，实在不行再说。', weights: { business: 2, vision: 1 } },
+      { id: 'q5a', text: '「我不能，但我可以边做边学。大模型不也是边训边学？」', weights: { tech: 1, creativity: 2 } },
+      { id: 'q5b', text: '「我不懂技术，但我会用 AI。」', weights: { creativity: 3 } },
+      { id: 'q5c', text: '「我的自信，已经超过了 GPU 的算力。」', weights: { confidence: 3 } },
+      { id: 'q5d', text: '「先让我试用三个月，股价涨回来再转正。」', weights: { business: 2, vision: 1 } },
     ],
   },
 ]
+
+/** 没有答感情题时的兜底（理论上不会出现） */
+export const defaultLoyalty = '心里只有工作'
 
 /* ------------------------------------------------------------------ */
 /* 五种 CEO 人格                                                       */
@@ -243,11 +258,11 @@ export const scoreBands = [
 /** 审核动画台词 */
 export const reviewLines = [
   '正在分析你的商业天赋……',
-  '正在评估你能否管理万亿市值……',
+  '正在评估你能否在财报前稳住股价……',
   '正在确认你是否知道 CUDA 是什么……',
   '董事会陷入了沉默……',
 ]
 
-/** 挑战文案模板：{title} {score} {url} 会被替换 */
+/** 挑战文案模板：{title} {loyalty} {score} {url} 会被替换 */
 export const shareTemplate =
-  '我去面试英伟达 CEO 了，董事会说我适合当「{title}」，模拟评分 {score} 分。你能拿多少分？{url}'
+  '我去面试英伟达 CEO 了，董事会说我适合当「{title}」，感情忠贞度：{loyalty}，模拟评分 {score} 分。你能拿多少分？{url}'

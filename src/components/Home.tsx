@@ -1,4 +1,5 @@
 import { newsHook, questions, site } from '../config'
+import { LogoLockup } from './Logo'
 
 const jobRows: [string, string][] = [
   ['职位', 'CEO（全球最难岗位之一）'],
@@ -89,8 +90,11 @@ export default function Home({ onStart }: { onStart: () => void }) {
         <p className="mt-6 text-center font-mono text-[11px] leading-5 text-mute/70">
           共 {questions.length} 题 · 约 1 分钟 · 无需注册
           <br />
-          {site.productName} · by {site.club}
+          {site.productName}
         </p>
+        <div className="mt-2 flex items-center justify-center gap-2 font-mono text-[11px] text-mute/70">
+          by <LogoLockup height={20} />
+        </div>
       </div>
     </section>
   )

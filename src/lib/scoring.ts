@@ -1,4 +1,4 @@
-import { dims, personas, questions, scoreBands, tieBreak, type Dim, type Persona } from '../config'
+import { defaultLoyalty, dims, personas, questions, scoreBands, tieBreak, type Dim, type Persona } from '../config'
 
 export interface Result {
   persona: Persona
@@ -11,6 +11,8 @@ export interface Result {
   tags: string[]
   strength: string
   weakness: string
+  /** 感情忠贞度标签，来自感情题的选择 */
+  loyalty: string
   key: string
 }
 
@@ -40,9 +42,11 @@ function hash(s: string): number {
 /** answers: 每题所选选项 id，按题目顺序 */
 export function computeResult(answers: string[]): Result {
   const raw = Object.fromEntries(DIMS.map((d) => [d, 0])) as Record<Dim, number>
+  let loyalty = defaultLoyalty
   questions.forEach((q, i) => {
     const opt = q.options.find((o) => o.id === answers[i])
     if (!opt) return
+    if (opt.loyalty) loyalty = opt.loyalty
     for (const [d, v] of Object.entries(opt.weights) as [Dim, number][]) raw[d] += v
   })
 
@@ -76,6 +80,7 @@ export function computeResult(answers: string[]): Result {
     tags: [persona.tag, band.tag],
     strength: dims[top].strength,
     weakness: dims[weak].weakness,
+    loyalty,
     key,
   }
 }

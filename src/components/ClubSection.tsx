@@ -1,5 +1,6 @@
 import { clubCta, site } from '../config'
 import { track } from '../lib/analytics'
+import { LogoLockup } from './Logo'
 
 type Cta = { label: string; url: string }
 
@@ -13,7 +14,8 @@ export default function ClubSection() {
 
   return (
     <section className="mt-16 rounded-3xl border border-line bg-panel-2 p-5">
-      <p className="font-mono text-[11px] text-neon">// made by humans + AI</p>
+      <LogoLockup height={34} />
+      <p className="mt-4 font-mono text-[11px] text-neon">// made by humans + AI</p>
       <h3 className="mt-2 text-[21px] leading-snug font-black text-balance">{clubCta.title}</h3>
       <div className="mt-4 space-y-1.5 text-[15px] leading-relaxed text-text/80">
         {clubCta.body.map((line) => (

@@ -96,6 +96,7 @@ export default function ResultView({
     ['一句话评价', persona.oneLiner],
     ['核心优势', result.strength],
     ['致命短板', result.weakness],
+    ['感情忠贞度', result.loyalty],
     ['董事会评语', persona.board],
     ['录用结论', result.verdict],
   ]
@@ -140,7 +141,11 @@ export default function ResultView({
             </div>
           </div>
 
-          <div className="mt-5 flex flex-wrap gap-2">
+          <p className="mt-5 text-[14px] text-mute">
+            感情忠贞度 <span className="ml-1 font-bold text-[#ff8fb1]">{result.loyalty}</span>
+          </p>
+
+          <div className="mt-3 flex flex-wrap gap-2">
             {result.tags.map((t) => (
               <span key={t} className="rounded-full border border-neon/40 bg-neon/5 px-3 py-1 text-[13px] text-neon">
                 {t}
