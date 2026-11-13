@@ -53,7 +53,7 @@ const Poster = forwardRef<HTMLDivElement, { result: Result }>(function Poster({ 
 
       <div className="relative flex h-full flex-col px-6 pt-5 pb-4">
         <div className="flex items-center justify-between font-mono text-[10px] tracking-wider text-mute">
-          <span>{site.productNameZh} · CEO APPOINTMENT</span>
+          <span>{site.productNameZh}</span>
           <span>No.{appointmentNo(result.key)}</span>
         </div>
         <div className="mt-1 h-px bg-neon/30" />
@@ -84,7 +84,7 @@ const Poster = forwardRef<HTMLDivElement, { result: Result }>(function Poster({ 
             <p className="text-[11px] text-mute">董事会评语</p>
             <p className="mt-1 text-[13px] leading-snug font-medium">{persona.board}</p>
             <p className="mt-2 border-t border-line pt-1.5 text-[11px] text-mute">
-              感情忠贞度 <span className="font-bold text-[#ff8fb1]">{result.loyalty}</span>
+              隐藏情感称号 <span className="font-bold text-[#ff8fb1]">{result.hiddenTitle}</span>
             </p>
           </div>
         </div>

@@ -90,11 +90,14 @@ export default function Home({ onStart }: { onStart: () => void }) {
         <p className="mt-6 text-center font-mono text-[11px] leading-5 text-mute/70">
           共 {questions.length} 题 · 约 1 分钟 · 无需注册
           <br />
-          {site.productName}
+          {site.productNameZh}
         </p>
         <div className="mt-2 flex items-center justify-center gap-2 font-mono text-[11px] text-mute/70">
           by <LogoLockup height={20} />
         </div>
+        <p className="mt-3 text-center text-[11px] leading-5 text-mute/60">
+          本游戏为 {site.club} 制作的非官方娱乐模拟器，所有面试情节与董事会反应均为虚构。
+        </p>
       </div>
     </section>
   )

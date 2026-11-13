@@ -96,7 +96,7 @@ export default function ResultView({
     ['一句话评价', persona.oneLiner],
     ['核心优势', result.strength],
     ['致命短板', result.weakness],
-    ['感情忠贞度', result.loyalty],
+    ['隐藏情感称号', result.hiddenTitle],
     ['董事会评语', persona.board],
     ['录用结论', result.verdict],
   ]
@@ -142,7 +142,7 @@ export default function ResultView({
           </div>
 
           <p className="mt-5 text-[14px] text-mute">
-            感情忠贞度 <span className="ml-1 font-bold text-[#ff8fb1]">{result.loyalty}</span>
+            隐藏情感称号 <span className="ml-1 font-bold text-[#ff8fb1]">{result.hiddenTitle}</span>
           </p>
 
           <div className="mt-3 flex flex-wrap gap-2">

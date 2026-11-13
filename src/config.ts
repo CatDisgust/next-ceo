@@ -9,12 +9,19 @@ export interface Option {
   id: string // 选项唯一 id，会进入埋点，改文案时不要改 id
   text: string
   weights: Partial<Record<Dim, number>>
-  /** 只有感情题的选项有：结果页与海报上的「感情忠贞度」 */
-  loyalty?: string
+  /** 选完后弹出的董事会反应，每个元素一行 */
+  reaction: string[]
+  /** 只有感情题的选项有：结果页与海报上的「隐藏情感称号」 */
+  hiddenTitle?: string
 }
 
 export interface Question {
   id: string
+  /** 小标题，例如「第一印象」 */
+  tag: string
+  /** 情景铺垫，每个元素一行 */
+  scene: string[]
+  /** 真正的问题（大字显示） */
   title: string
   options: Option[]
 }
@@ -35,7 +42,7 @@ export interface Persona {
 
 export const site = {
   productName: "Who's the Next CEO?",
-  productNameZh: '英伟达 CEO 招聘模拟器',
+  productNameZh: '下一任英伟达 CEO，要不你来？',
   slogan: '老黄离职了，这个 CEO 你来当？',
   club: 'ViberSpace',
   /** 线上地址：海报二维码、海报网址、挑战文案都用它。留空则自动使用当前页面地址 */
@@ -126,74 +133,225 @@ export const dims: Record<Dim, { label: string; en: string; strength: string; we
 export const tieBreak: Dim[] = ['creativity', 'vision', 'tech', 'business', 'confidence']
 
 /* ------------------------------------------------------------------ */
-/* 面试题（每个选项总分保持 3；感情题选项额外带「感情忠贞度」）          */
+/* 面试题（每个选项总分 3 分；感情题选项额外带「隐藏情感称号」）          */
 /* ------------------------------------------------------------------ */
 
 export const questions: Question[] = [
   {
     id: 'q1',
-    title: '董事会正在内外部同时物色新 CEO。你作为外部候选人走进面试间，开口第一句是？',
+    tag: '第一印象',
+    scene: ['董事会正在物色下一任 CEO。', '你推开会议室的门，十几双眼睛齐刷刷看向你。'],
+    title: '面试官：「简单介绍一下自己？」',
     options: [
-      { id: 'q1a', text: '「不用介绍了，我的皮衣已经在路上了。」', weights: { confidence: 3 } },
-      { id: 'q1b', text: '「先聊薪资。股价跌掉的那 4%，算谁的？」', weights: { business: 3 } },
-      { id: 'q1c', text: '「请问 CUDA 那道题，可以开卷吗？」', weights: { tech: 2, creativity: 1 } },
-      { id: 'q1d', text: '「我不是来应聘的，我是来带你们去下一个万亿市场的。」', weights: { vision: 3 } },
+      {
+        id: 'q1a',
+        text: '「不用介绍了，我的皮衣已经在路上了。」',
+        weights: { confidence: 3 },
+        reaction: ['HR 默默把你的名字圈了起来。', '旁边写着：「有那味了。」'],
+      },
+      {
+        id: 'q1b',
+        text: '「先聊薪资吧，我想确认一下自己的市值。」',
+        weights: { business: 3 },
+        reaction: ['CFO 原本在玩手机。', '现在突然坐直了。'],
+      },
+      {
+        id: 'q1c',
+        text: '「我带了性能测试数据。就是跑分用的是我宿舍的 RTX 3060。」',
+        weights: { tech: 3 },
+        reaction: ['CTO 露出了今天第一个微笑。', '虽然不知道是欣慰还是同情。'],
+      },
+      {
+        id: 'q1d',
+        text: '「我不是来接替黄仁勋的，我是来接替摩尔定律的。」',
+        weights: { vision: 3 },
+        reaction: ['全场沉默。', '公关部已经开始拟新闻稿了。'],
+      },
     ],
   },
   {
     id: 'q2',
-    title: '上任第一天，下周就要发财报了。你先干什么？',
+    tag: '上任第一天',
+    scene: [
+      '面试官决定考验你的商业能力。',
+      '假设你明天就上任，下周还要发布财报。',
+      'CFO 把一份 87 页的文件放在你面前。',
+    ],
+    title: '「CEO，你的第一项决策是什么？」',
     options: [
-      { id: 'q2a', text: '全员放假三天，财报让 AI 先写个初稿。', weights: { creativity: 2, confidence: 1 } },
-      { id: 'q2e', text: '宣布全线显卡打骨折：财报可以难看，口碑必须好看。', weights: { business: 3 } },
-      { id: 'q2b', text: '连夜补课：CUDA、Blackwell、Rubin 到底谁是谁。', weights: { tech: 3 } },
-      { id: 'q2f', text: '先定制一件新皮衣，发布会的气势不能输。', weights: { confidence: 2, vision: 1 } },
+      {
+        id: 'q2a',
+        text: '「先把 Excel 里所有红色数字改成荧光绿。至少看起来很英伟达。」',
+        weights: { creativity: 3 },
+        reaction: ['CFO：「我做了二十年财务，第一次见这种解决方案。」', '但他居然没有反对。'],
+      },
+      {
+        id: 'q2b',
+        text: '「财报先别急着发，我想确认一下 AI 热潮到底给我们赚了几个零。」',
+        weights: { business: 3 },
+        reaction: ['CFO 眼睛亮了。', '「这位候选人终于开始问钱了。」'],
+      },
+      {
+        id: 'q2c',
+        text: '「Blackwell、Rubin、CUDA……今晚给我安排个通宵培训。」',
+        weights: { tech: 3 },
+        reaction: ['技术部门表示非常感动。', '但已经有人开始准备 400 页 PPT 了。'],
+      },
+      {
+        id: 'q2d',
+        text: '「先定制一件新皮衣，发布会的气势不能输。」',
+        weights: { confidence: 2, vision: 1 },
+        reaction: ['行政部已经开始联系供应商。', 'CFO：「所以这笔算研发费用还是营销费用？」'],
+      },
     ],
   },
   {
     id: 'q3',
-    title: '全球大厂的 CEO 排队给你打电话要 GPU，你的统一回复是？',
+    tag: '客户管理',
+    scene: [
+      '你刚坐上 CEO 的位置。',
+      '微软、OpenAI、Meta 的 CEO 同时打来电话。',
+      '三个人只说了一句话：「还有 GPU 吗？」',
+    ],
+    title: '你怎么回复？',
     options: [
-      { id: 'q3a', text: '「请取号排队，当前预计等待：18 个月。」', weights: { business: 2, tech: 1 } },
-      { id: 'q3b', text: '「买得越多，省得越多。」', weights: { business: 3 } },
-      { id: 'q3c', text: '「我们正在重新定义算力的未来，请稍后再拨。」', weights: { vision: 2, confidence: 1 } },
-      { id: 'q3d', text: '「卡没有。要不你先借我点钱扩产？」', weights: { creativity: 2, business: 1 } },
+      {
+        id: 'q3a',
+        text: '「别急，我正在研究怎么把排队时间也做成订阅服务。」',
+        weights: { business: 3 },
+        reaction: ['CFO 当场鼓掌。', '「你怎么知道我们还没收这个钱？」'],
+      },
+      {
+        id: 'q3b',
+        text: '「不要老想着显卡。我们应该聊聊人类文明的下一个阶段。」',
+        weights: { vision: 3 },
+        reaction: ['对面沉默了五秒。', '然后默默追加了订单。'],
+      },
+      {
+        id: 'q3c',
+        text: '「你先把现有 GPU 的利用率发来。别告诉我你们买回去在跑贪吃蛇。」',
+        weights: { tech: 3 },
+        reaction: ['技术部门给你点了个赞。', '销售部门把你拉进了免打扰群。'],
+      },
+      {
+        id: 'q3d',
+        text: '「卡没有。要不我先给你们发个许愿链接？转发三个 CEO 可以提高出货概率。」',
+        weights: { creativity: 3 },
+        reaction: ['三位 CEO 居然真的转发了。', '现在硅谷的群聊有点失控。'],
+      },
     ],
   },
   {
     id: 'q_love',
-    title: '你刚当上 CEO，白月光突然发来消息：「听说你现在很厉害？」你怎么回？',
-    options: [
-      { id: 'love_a', text: '已读不回。我现在只对 GPU 专一。', weights: { confidence: 3 }, loyalty: '忠贞不二 · 只爱 GPU' },
-      { id: 'love_b', text: '「等我把市值做回去，再来找你。」', weights: { vision: 3 }, loyalty: '画饼型深情' },
-      { id: 'love_c', text: '让 AI 帮我写一条既体面又暧昧的回复。', weights: { creativity: 3 }, loyalty: 'AI 代理恋爱' },
-      { id: 'love_d', text: '「先说清楚，你现在用的是什么显卡？」', weights: { tech: 3 }, loyalty: '硬件至上主义' },
+    tag: '私人危机',
+    scene: [
+      '面试官突然拿出一张纸：「现在考考你的危机处理能力。」',
+      '假设你已经是 CEO。某天深夜，你的白月光突然发来一条消息：',
     ],
-  },
-  {
-    id: 'q4',
-    title: '竞争对手发布了一款比你便宜十倍的芯片，你怎么办？',
+    title: '「听说你现在很厉害？」\n你怎么回复？',
     options: [
-      { id: 'q4a', text: '连夜召集研发：下一代芯片，提前发布。', weights: { tech: 3 } },
-      { id: 'q4b', text: '发条动态：「真正的高手，从不在乎价格。」', weights: { confidence: 3 } },
-      { id: 'q4c', text: '先买一个回来拆开看看，看完挂闲鱼回血。', weights: { tech: 2, creativity: 1 } },
-      { id: 'q4d', text: '宣布英伟达转型做奶茶，第一杯叫「CUDA 拿铁」。', weights: { creativity: 3 } },
+      {
+        id: 'love_a',
+        text: '「您好，您已进入上市公司合规聊天模式。所有消息均有可能出现在下季度财报里。」',
+        weights: { business: 3 },
+        hiddenTitle: '合规型海王',
+        reaction: ['法务部激动地站了起来。', '「这才是我们想要的 CEO！」'],
+      },
+      {
+        id: 'love_b',
+        text: '「我们的关系具有长期向好的基本面，具体进展将在下个季度披露。」',
+        weights: { vision: 3 },
+        hiddenTitle: '情感战略家',
+        reaction: ['白月光：「所以到底什么意思？」', '投资者关系部门：「非常标准的回答。」'],
+      },
+      {
+        id: 'love_c',
+        text: '把消息发给 AI，生成 20 条回复，再让另一个 AI 选出最不像 AI 写的那条。',
+        weights: { creativity: 3 },
+        hiddenTitle: '恋爱自动驾驶',
+        reaction: ['AI 最后建议：「不建议回复。」', '你觉得模型可能有了自我意识。'],
+      },
+      {
+        id: 'love_d',
+        text: '已读不回。我已经决定和 CUDA 共度余生。',
+        weights: { confidence: 3 },
+        hiddenTitle: 'GPU 纯爱战神',
+        reaction: ['CUDA：「？」', '「我们什么时候在一起的？」'],
+      },
     ],
   },
   {
     id: 'q5',
-    title: '最后一题。董事会问：你凭什么觉得自己能胜任？',
+    tag: '竞争危机',
+    scene: ['面试进入最终压力测试。', '竞争对手突然发布一款价格只有你们十分之一的芯片。', '董事会全体看向你。'],
+    title: '「CEO，我们该怎么办？」',
     options: [
-      { id: 'q5a', text: '「我不能，但我可以边做边学。大模型不也是边训边学？」', weights: { tech: 1, creativity: 2 } },
-      { id: 'q5b', text: '「我不懂技术，但我会用 AI。」', weights: { creativity: 3 } },
-      { id: 'q5c', text: '「我的自信，已经超过了 GPU 的算力。」', weights: { confidence: 3 } },
-      { id: 'q5d', text: '「先让我试用三个月，股价涨回来再转正。」', weights: { business: 2, vision: 1 } },
+      {
+        id: 'q5a',
+        text: '「先买三张回来。一张拆架构，一张测性能，还有一张防止第一张拆坏。」',
+        weights: { tech: 3 },
+        reaction: ['CTO 感动得快哭了：「终于来了个懂硬件的。」', '采购部：「等等，这就三张了？」'],
+      },
+      {
+        id: 'q5b',
+        text: '「他们比我们便宜十倍？很好，说明我们的高端定位非常成功。」',
+        weights: { confidence: 3 },
+        reaction: ['市场部沉默了。', '然后把这句话写进了明年的品牌战略。'],
+      },
+      {
+        id: 'q5c',
+        text: '「先联系他们。打不过就谈合作，合作不了就谈收购。」',
+        weights: { business: 3 },
+        reaction: ['法务：「你知道这有多复杂吗？」', 'CFO：「但我喜欢他的思路。」'],
+      },
+      {
+        id: 'q5d',
+        text: '「从今天起，英伟达正式进军玄学。GPU 不算了，我们算你命里有没有 GPU。」',
+        weights: { creativity: 3 },
+        reaction: ['三分钟后，官网新增一项服务：', '「AI 算命，$19.99 / 月。」', 'CFO 表示可以再讨论讨论。'],
+      },
+    ],
+  },
+  {
+    id: 'q6',
+    tag: '终极面试',
+    scene: [
+      '面试终于结束。董事会成员交换了一下眼神。',
+      '董事长缓缓站起来：「我们一致决定……」',
+      '「恭喜，你被录用了。」',
+    ],
+    title: '「现在，你还有什么想说的？」',
+    options: [
+      {
+        id: 'q6a',
+        text: '「？？？不是哥们，我以为这是个小游戏啊？」',
+        weights: { creativity: 3 },
+        reaction: ['HR：「我们也以为你是来整活的。」', '「但刚才有人已经给你开好工牌了。」'],
+      },
+      {
+        id: 'q6b',
+        text: '「等一下，能先给我配台电脑吗？我的笔记本连公司官网都快打不开了。」',
+        weights: { tech: 3 },
+        reaction: ['IT：「预算多少？」', '你：「我是 CEO。」', 'IT：「那也得走审批。」'],
+      },
+      {
+        id: 'q6c',
+        text: '「感谢各位。我上任后的第一件事，就是让全世界的人都来参加这个 CEO 面试。」',
+        weights: { vision: 3 },
+        reaction: ['增长团队突然精神了。', '「CEO，您说的这个用户增长模型……有点东西。」'],
+      },
+      {
+        id: 'q6d',
+        text: '「其实我刚才一道题都没听懂，但你们不觉得我一直很有 CEO 的气质吗？」',
+        weights: { confidence: 3 },
+        reaction: ['董事长摘下眼镜。', '「你知道吗，这正是我们最担心、又最欣赏你的地方。」'],
+      },
     ],
   },
 ]
 
 /** 没有答感情题时的兜底（理论上不会出现） */
-export const defaultLoyalty = '心里只有工作'
+export const defaultHiddenTitle = '心里只有工作'
 
 /* ------------------------------------------------------------------ */
 /* 五种 CEO 人格                                                       */
@@ -248,21 +406,28 @@ export const personas: Persona[] = [
 ]
 
 /** 录用结论与身份标签，按虚构评分分档（min 从高到低） */
+/** 所有玩家都会被录用（虚构），分档只影响录用评语和标签 */
 export const scoreBands = [
-  { min: 90, verdict: '当场录用，皮衣尺码已登记', tag: '#董事会一致通过' },
-  { min: 78, verdict: '进入终面，董事会正在激烈讨论', tag: '#CEO预备役' },
-  { min: 62, verdict: '建议先从实习 CEO 做起', tag: '#实习CEO' },
-  { min: 0, verdict: '董事会需要冷静一下', tag: '#试用期CEO' },
+  { min: 90, verdict: '全票通过，皮衣尺码已登记', tag: '#董事会一致通过' },
+  { min: 78, verdict: '录用通过，董事会仍在消化你的发言', tag: '#CEO预备役' },
+  { min: 62, verdict: '录用通过，附赠三个月试用期', tag: '#实习CEO' },
+  { min: 0, verdict: '已录用，董事会集体请了半天假', tag: '#试用期CEO' },
 ]
 
-/** 审核动画台词 */
-export const reviewLines = [
-  '正在分析你的商业天赋……',
-  '正在评估你能否在财报前稳住股价……',
-  '正在确认你是否知道 CUDA 是什么……',
-  '董事会陷入了沉默……',
-]
+/** 答完题后的过场动画 */
+export const reviewScreen = {
+  intro: '恭喜。\n你已经成功引起董事会的注意。',
+  lines: [
+    '正在分析你的商业天赋……',
+    '正在检查你的技术背景……',
+    '正在评估你的皮衣适配度……',
+    '正在排查潜在公关危机……',
+    '正在确认你是否真的适合管理万亿市值……',
+  ],
+  outro: ['董事会讨论结束。', '你的 CEO 人格鉴定报告已生成。'],
+  button: '查看我的 CEO 任命书 →',
+}
 
-/** 挑战文案模板：{title} {loyalty} {score} {url} 会被替换 */
+/** 挑战文案模板：{title} {hiddenTitle} {score} {url} 会被替换 */
 export const shareTemplate =
-  '我去面试英伟达 CEO 了，董事会说我适合当「{title}」，感情忠贞度：{loyalty}，模拟评分 {score} 分。你能拿多少分？{url}'
+  '我去面试英伟达 CEO 了，董事会说我适合当「{title}」，隐藏情感称号：{hiddenTitle}，模拟评分 {score} 分。你能拿多少分？{url}'

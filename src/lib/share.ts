@@ -22,7 +22,7 @@ export function qrLink() {
 export function shareText(r: Result) {
   return shareTemplate
     .replace('{title}', r.persona.title)
-    .replace('{loyalty}', r.loyalty)
+    .replace('{hiddenTitle}', r.hiddenTitle)
     .replace('{score}', String(r.score))
     .replace('{url}', ` ${siteLink()}`)
     .trim()
