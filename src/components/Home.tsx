@@ -5,7 +5,7 @@ const jobRows: [string, string][] = [
   ['职位', 'CEO（全球最难岗位之一）'],
   ['汇报对象', '董事会 + 全体网友'],
   ['经验要求', '不限，敢来就行'],
-  ['加分项', '自带皮衣 / 会用 AI / 心理素质好'],
+  ['加分项', '自带皮衣 / 会用 AI / 情感忠诚'],
 ]
 
 export default function Home({ onStart }: { onStart: () => void }) {
