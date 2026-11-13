@@ -2,11 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 import { dims, type Dim } from '../config'
 import { appointmentNo, type Result } from '../lib/scoring'
 import { track } from '../lib/analytics'
-import { copyText, isInAppBrowser, renderPoster, savePoster, shareText } from '../lib/share'
+import { copyText, dataUrlToFile, isInAppBrowser, isTouchDevice, renderPoster, savePoster, shareText } from '../lib/share'
 import Poster from './Poster'
 import ClubSection from './ClubSection'
 
-type PosterState = { status: 'idle' } | { status: 'loading' } | { status: 'ready'; url: string } | { status: 'error' }
+type PosterState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'ready'; url: string; file: File }
+  | { status: 'error' }
 
 export default function ResultView({
   result,
@@ -18,11 +22,23 @@ export default function ResultView({
   onRetry: () => void
 }) {
   const { persona, score } = result
+  const filename = `CEO任命书-${persona.title}-${appointmentNo(result.key)}.png`
   const posterRef = useRef<HTMLDivElement>(null)
   const [poster, setPoster] = useState<PosterState>({ status: 'idle' })
   const [open, setOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [manualCopy, setManualCopy] = useState<string | null>(null)
+  // 顶部保存按钮滚出屏幕后，在底部常驻一个保存按钮
+  const topSaveRef = useRef<HTMLButtonElement>(null)
+  const [showDock, setShowDock] = useState(false)
+
+  useEffect(() => {
+    const el = topSaveRef.current
+    if (!el || !('IntersectionObserver' in window)) return
+    const io = new IntersectionObserver(([e]) => setShowDock(!e.isIntersecting && e.boundingClientRect.top < 0))
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
 
   useEffect(() => {
     track('result_view', { persona: persona.id, score }, `result_view:${attemptId}`)
@@ -30,7 +46,7 @@ export default function ResultView({
 
   useEffect(() => {
     if (!toast) return
-    const t = window.setTimeout(() => setToast(null), 2200)
+    const t = window.setTimeout(() => setToast(null), toast.length > 24 ? 4200 : 2400)
     return () => window.clearTimeout(t)
   }, [toast])
 
@@ -50,8 +66,9 @@ export default function ResultView({
       return Promise.resolve()
     }
     setPoster({ status: 'loading' })
+    // 提前把图片转成文件，点保存时才能同步调起系统分享（iOS 要求）
     job.current = renderPoster(posterRef.current)
-      .then((url) => setPoster({ status: 'ready', url }))
+      .then(async (url) => setPoster({ status: 'ready', url, file: await dataUrlToFile(url, filename) }))
       .catch(() => {
         setPoster({ status: 'error' })
         job.current = null
@@ -62,12 +79,18 @@ export default function ResultView({
   useEffect(() => {
     const t = window.setTimeout(render, 1600)
     return () => window.clearTimeout(t)
+    // 只在结果页出现时预渲染一次
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const generate = () => {
+  const inApp = isInAppBrowser()
+
+  /** 结果页主按钮：图片已就绪就直接保存，同时打开预览；还没就绪则先打开预览等待生成 */
+  const saveFromPage = () => {
     setOpen(true)
     track('poster_generate', { persona: persona.id }, `poster_generate:${attemptId}`)
-    render()
+    if (poster.status === 'ready') save()
+    else render()
   }
 
   const retryPoster = () => {
@@ -75,13 +98,19 @@ export default function ResultView({
     render()
   }
 
-  const save = async () => {
+  const save = () => {
     if (poster.status !== 'ready') return
     track('poster_save', { persona: persona.id }, `poster_save:${attemptId}`)
-    const r = await savePoster(poster.url, `CEO任命书-${persona.title}-${appointmentNo(result.key)}.png`)
-    if (r === 'downloaded') setToast('已保存到下载文件夹')
-    else if (r === 'shared') setToast('已调起分享，记得选「存储图像」')
-    else if (r === 'manual') setToast('长按上方图片即可保存到相册')
+    if (inApp) {
+      setToast('当前 App 不支持直接保存：请长按图片保存，或点右上角「···」用浏览器打开')
+      return
+    }
+    // 注意：这里必须同步调用 savePoster，不能在它之前 await
+    savePoster(poster.file, filename).then((r) => {
+      if (r === 'downloaded') setToast(isTouchDevice() ? '已保存，可在相册或「下载」里找到' : '已保存到下载文件夹')
+      else if (r === 'shared') setToast('选「存储图像」就能存进相册')
+      else if (r === 'manual') setToast('长按图片即可保存到相册')
+    })
   }
 
   const copy = async () => {
@@ -158,10 +187,11 @@ export default function ResultView({
       {/* 主要操作：紧跟结果卡，第一屏就能看到 */}
       <div className="rise mt-5 space-y-3" style={{ animationDelay: '120ms' }}>
         <button
-          onClick={generate}
+          ref={topSaveRef}
+          onClick={saveFromPage}
           className="press min-h-[56px] w-full rounded-2xl bg-neon text-[17px] font-black text-ink shadow-[0_10px_40px_-12px_rgb(184_255_44/0.6)] active:bg-neon-2"
         >
-          生成我的 CEO 任命书
+          保存我的 CEO 任命书
         </button>
         <div className="grid grid-cols-2 gap-3">
           <button onClick={onRetry} className="press min-h-[50px] rounded-2xl border border-line bg-panel text-[15px] font-bold">
@@ -179,7 +209,7 @@ export default function ResultView({
         <dl className="divide-y divide-line">
           {fields.map(([k, v]) => (
             <div key={k} className="flex gap-3 px-4 py-3 text-[14.5px] leading-relaxed">
-              <dt className="w-[76px] shrink-0 text-mute">{k}</dt>
+              <dt className="w-[92px] shrink-0 text-mute">{k}</dt>
               <dd className="text-text">{v}</dd>
             </div>
           ))}
@@ -213,6 +243,23 @@ export default function ResultView({
 
       <ClubSection />
 
+      {/* 底部常驻保存按钮 */}
+      <div
+        className={`fixed inset-x-0 bottom-0 z-30 flex justify-center px-4 pt-3 pb-[max(env(safe-area-inset-bottom),12px)] transition-all duration-300 ${
+          showDock && !open ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-full opacity-0'
+        }`}
+        style={{ background: 'linear-gradient(to top, rgb(7 8 10 / 0.96) 60%, transparent)' }}
+      >
+        <button
+          onClick={saveFromPage}
+          tabIndex={showDock ? 0 : -1}
+          className="press min-h-[52px] w-full max-w-[448px] rounded-2xl bg-neon text-[16px] font-black text-ink shadow-[0_10px_40px_-12px_rgb(184_255_44/0.6)] active:bg-neon-2"
+        >
+          保存我的 CEO 任命书
+        </button>
+      </div>
+      <div className="h-20" aria-hidden />
+
       {/* 离屏海报节点，仅用于导出图片 */}
       <div className="pointer-events-none fixed top-0 -left-[10000px]" aria-hidden>
         <Poster ref={posterRef} result={result} />
@@ -221,7 +268,7 @@ export default function ResultView({
       {open && (
         <PosterModal
           state={poster}
-          inApp={isInAppBrowser()}
+          inApp={inApp}
           onClose={() => setOpen(false)}
           onSave={save}
           onRetryPoster={retryPoster}
@@ -313,17 +360,15 @@ function PosterModal({
 
       <div className="space-y-3 px-4 pt-3 pb-[max(env(safe-area-inset-bottom),16px)]">
         <p className="text-center text-xs text-mute">
-          {inApp ? '长按上方图片，选择「保存图片」' : '保存不了？长按上方图片也可以保存到相册'}
+          {inApp ? '长按上方图片，选择「保存图片」即可存进相册' : '保存不了？长按上方图片也可以存进相册'}
         </p>
-        {!inApp && (
-          <button
-            onClick={onSave}
-            disabled={state.status !== 'ready'}
-            className="press min-h-[56px] w-full rounded-2xl bg-neon text-[17px] font-black text-ink disabled:opacity-40"
-          >
-            保存我的任命书
-          </button>
-        )}
+        <button
+          onClick={onSave}
+          disabled={state.status !== 'ready'}
+          className="press min-h-[56px] w-full rounded-2xl bg-neon text-[17px] font-black text-ink disabled:opacity-40"
+        >
+          保存我的任命书
+        </button>
         <div className="grid grid-cols-2 gap-3">
           <button onClick={onRetry} className="press min-h-[48px] rounded-2xl border border-line bg-panel text-[15px] font-bold">
             重新挑战

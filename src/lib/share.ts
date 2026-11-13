@@ -57,38 +57,44 @@ export async function dataUrlToFile(dataUrl: string, name: string) {
   return new File([blob], name, { type: 'image/png' })
 }
 
-/**
- * 保存图片：
- * 1. 手机且支持系统分享 → 调起分享面板（可「存储图像」）
- * 2. 支持下载 → 直接下载
- * 返回 'shared' | 'downloaded' | 'manual'（需要用户长按保存）
- */
-export async function savePoster(dataUrl: string, filename: string): Promise<'shared' | 'downloaded' | 'manual' | 'cancelled'> {
-  if (isInAppBrowser()) return 'manual'
+export type SaveResult = 'shared' | 'downloaded' | 'manual' | 'cancelled'
 
-  if (isTouchDevice() && navigator.canShare) {
-    try {
-      const file = await dataUrlToFile(dataUrl, filename)
-      if (navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: site.productName })
-        return 'shared'
-      }
-    } catch (e) {
-      if ((e as Error).name === 'AbortError') return 'cancelled'
-    }
-  }
+export function isIOS() {
+  const ua = navigator.userAgent
+  return /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)
+}
 
+function downloadFile(file: File, filename: string): SaveResult {
   try {
+    const url = URL.createObjectURL(file)
     const a = document.createElement('a')
-    a.href = dataUrl
+    a.href = url
     a.download = filename
     document.body.appendChild(a)
     a.click()
     a.remove()
-    return isTouchDevice() ? 'manual' : 'downloaded'
+    setTimeout(() => URL.revokeObjectURL(url), 60_000)
+    return isIOS() ? 'manual' : 'downloaded'
   } catch {
     return 'manual'
   }
+}
+
+/**
+ * 保存图片。必须在点击回调里「同步」调用（调用前不能 await），否则 iOS 会拒绝弹出分享面板。
+ * - iPhone / iPad：调起系统分享面板，选「存储图像」即可存进相册
+ * - 安卓 / 电脑：直接下载 PNG
+ * - 小红书 / 微信等 App 内置浏览器：系统不允许网页保存文件，返回 'manual'，引导长按保存
+ */
+export function savePoster(file: File, filename: string): Promise<SaveResult> {
+  if (isInAppBrowser()) return Promise.resolve('manual')
+  if (isIOS() && navigator.canShare?.({ files: [file] })) {
+    return navigator
+      .share({ files: [file] })
+      .then((): SaveResult => 'shared')
+      .catch((e: Error): SaveResult => (e?.name === 'AbortError' ? 'cancelled' : downloadFile(file, filename)))
+  }
+  return Promise.resolve(downloadFile(file, filename))
 }
 
 export async function copyText(text: string): Promise<boolean> {
